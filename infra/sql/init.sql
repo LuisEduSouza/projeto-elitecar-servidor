@@ -19,8 +19,8 @@ CREATE TABLE pedido_venda (
 	id_carro INT NOT NULL,
     data_pedido DATE NOT NULL,
     valor_pedido DECIMAL (6) NOT NULL,
-	FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente),
-	FOREIGN KEY (id_carro) REFERENCES Carro (id_carro)
+	FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente),
+	FOREIGN KEY (id_carro) REFERENCES carro (id_carro)
 );
 
 INSERT INTO carro (marca,modelo,ano,cor) VALUES

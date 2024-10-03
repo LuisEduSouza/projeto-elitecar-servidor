@@ -5,7 +5,7 @@ export class PedidoVenda {
 
     /* Atributos */
     /* Identificador do pedido de venda */
-    private idPedidoVenda: number = 0;
+    private idPedido: number = 0;
     /* Identificador do carro associado ao pedido */
     private idCarro: number;
     /* Identificador do cliente associado ao pedido */
@@ -40,16 +40,16 @@ export class PedidoVenda {
      * Recupera o identificador do pedido de venda
      * @returns o identificador do pedido de venda
      */
-    public getIdPedidoVenda(): number {
-        return this.idPedidoVenda;
+    public getIdPedido(): number {
+        return this.idPedido;
     }
 
     /**
      * Atribui um valor ao identificador do pedido de venda
-     * @param idPedidoVenda novo identificador do pedido de venda
+     * @param idPedido novo identificador do pedido de venda
      */
-    public setIdPedidoVenda(idPedidoVenda: number): void {
-        this.idPedidoVenda = idPedidoVenda;
+    public setIdPedido(idPedido: number): void {
+        this.idPedido = idPedido;
     }
 
     /**
