@@ -1,3 +1,7 @@
+import { DatabaseModel } from "./DatabaseModel";
+
+const database = new DatabaseModel().pool
+
 /**
  * Classe que representa um carro.
  */
@@ -122,5 +126,41 @@ export class Carro {
      */
     public setCor(cor: string): void {
         this.cor = cor;
+    }
+
+        // MÉTODO PARA ACESSAR O BANCO DE DADOS
+        //CRUD Create - Read - Update - Delete
+    static async listarCarros(): Promise<Array<Carro> | null> {
+        //CRIANDO LISTA VAZIA PARA ARMAZENAR OS CARROS
+        let listaDeCarros: Array<Carro> = [];
+
+        try {
+            // Querry para consulta no banco de dados
+            const querySelectCarro = `SELECT * FROM carro;`;
+
+            // executa a querry no banco de dados
+            const respostaBD = await database.query(querySelectCarro);
+
+            respostaBD.rows.forEach((carro) => {
+                let novoCarro = new Carro(
+                    carro.marca,
+                    carro.modelo,
+                    carro.ano,
+                    carro.cor
+                );
+
+                novoCarro.setIdCarro(carro.id);
+
+                // adicionando o carro na lista
+                listaDeCarros.push(novoCarro);
+            });
+
+            //retornando a lista de carros para que chamou a função
+            return listaDeCarros;
+
+        } catch (error) {
+            console.log(`Erro ao acessar o modelo: ${error}`);
+            return null;
+        }
     }
 }

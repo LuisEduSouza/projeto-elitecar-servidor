@@ -1,3 +1,7 @@
+import { DatabaseModel } from "./DatabaseModel";
+
+const database = new DatabaseModel().pool
+
 /**
  * Classe que representa um cliente.
  */
@@ -77,7 +81,7 @@ export class Cliente {
     /**
      * Define o cpf do cliente.
      *
-     * @param cpf - O nome do cpf do cliente.
+     * @param cpf - O cpf do cliente.
      */
     public setCpf(cpf: string): void {
         this.cpf = cpf;
@@ -99,5 +103,38 @@ export class Cliente {
      */
     public setTelefone(telefone: string): void {
         this.telefone = telefone;
+    }
+
+    static async listarCliente(): Promise<Array<Cliente> | null> {
+        //CRIANDO LISTA VAZIA PARA ARMAZENAR OS CLIENTES
+        let listaDeClientes: Array<Cliente> = [];
+
+        try {
+            // Querry para consulta no banco de dados
+            const querySelectCliente = `SELECT * FROM cliente;`;
+
+            // executa a querry no banco de dados
+            const respostaBD = await database.query(querySelectCliente);
+
+            respostaBD.rows.forEach((cliente) => {
+                let novoCliente = new Cliente(
+                    cliente.nome,
+                    cliente.cpf,
+                    cliente.telefone
+                );
+
+                novoCliente.setIdCliente(cliente.id);
+
+                // adicionando o cliente na lista
+                listaDeClientes.push(novoCliente);
+            });
+
+            //retornando a lista de cliente para que chamou a função
+            return listaDeClientes;
+
+        } catch (error) {
+            console.log(`Erro ao acessar o modelo: ${error}`);
+            return null;
+        }
     }
 }
