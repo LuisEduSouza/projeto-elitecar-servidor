@@ -130,7 +130,7 @@ export class Carro {
 
         // MÉTODO PARA ACESSAR O BANCO DE DADOS
         //CRUD Create - Read - Update - Delete
-    static async listarCarros(): Promise<Array<Carro> | null> {
+    static async listagemCarros(): Promise<Array<Carro> | null> {
         //CRIANDO LISTA VAZIA PARA ARMAZENAR OS CARROS
         let listaDeCarros: Array<Carro> = [];
 
@@ -156,7 +156,7 @@ export class Carro {
             });
 
             //retornando a lista de carros para que chamou a função
-            return listaDeCarros;
+            return listaDeCarros;                                                                                                                                   
 
         } catch (error) {
             console.log(`Erro ao acessar o modelo: ${error}`);

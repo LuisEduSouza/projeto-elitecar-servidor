@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
-import CarroController from "./controller/CarroController";
-import ClienteController from "./controller/ClienteController";
-import PedidoVendaController from "./controller/PedidoVendaController";
+import { CarroController } from "./controller/CarroController";
+import { ClienteController } from "./controller/ClienteController";
+import { PedidoVendaController } from "./controller/PedidoVendaController";
 
 // Cria um roteador
 const router = Router();
@@ -11,11 +11,14 @@ router.get("/", (req:Request, res:Response) => {
     res.json({ mensagem: "Bem-vindo ao meu servidor"});
 });
 
-router.get('/carro', CarroController.todos);
+// ROTAS PARA CARROS
+router.get('/lista/carros', CarroController.todos);
 
-router.get('/cliente', ClienteController.todos);
+// ROTAS PARA CLIENTES
+router.get('/lista/clientes', ClienteController.todos);
 
-router.get('/pedido', PedidoVendaController.todos);
+// ROTAS PARA PEDIDOS
+router.get('/lista/pedidos', PedidoVendaController.todos);
 
 // Exportando as rotas
 export{ router };
