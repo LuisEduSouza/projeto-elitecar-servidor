@@ -1,6 +1,7 @@
 import { DatabaseModel } from "./DatabaseModel";
 
-const database = new DatabaseModel().pool
+// armazenei o pool de conexões
+const database = new DatabaseModel().pool;
 
 /**
  * Classe que representa um carro.
@@ -128,38 +129,47 @@ export class Carro {
         this.cor = cor;
     }
 
-        // MÉTODO PARA ACESSAR O BANCO DE DADOS
-        //CRUD Create - Read - Update - Delete
+    /**
+     * Busca e retorna uma lista de carros do banco de dados.
+     * @returns Um array de objetos do tipo `Carro` em caso de sucesso ou `null` se ocorrer um erro durante a consulta.
+     * 
+     * - A função realiza uma consulta SQL para obter todas as informações da tabela "carro".
+     * - Os dados retornados do banco de dados são usados para instanciar objetos da classe `Carro`.
+     * - Cada carro é adicionado a uma lista que será retornada ao final da execução.
+     * - Se houver falha na consulta ao banco, a função captura o erro, exibe uma mensagem no console e retorna `null`.
+     */
     static async listagemCarros(): Promise<Array<Carro> | null> {
-        //CRIANDO LISTA VAZIA PARA ARMAZENAR OS CARROS
-        let listaDeCarros: Array<Carro> = [];
-
+        // objeto para armazenar a lista de carros
+        const listaDeCarros: Array<Carro> = [];
+        
         try {
-            // Querry para consulta no banco de dados
+            // query de consulta ao banco de dados
             const querySelectCarro = `SELECT * FROM carro;`;
 
-            // executa a querry no banco de dados
+            // fazendo a consulta e guardando a resposta
             const respostaBD = await database.query(querySelectCarro);
 
-            respostaBD.rows.forEach((carro) => {
-                let novoCarro = new Carro(
-                    carro.marca,
-                    carro.modelo,
-                    carro.ano,
-                    carro.cor
+            // usando a resposta para instanciar um objeto do tipo carro
+            respostaBD.rows.forEach((linha) => {
+                // instancia (cria) objeto carro
+                const novoCarro = new Carro(
+                    linha.marca,
+                    linha.modelo,
+                    linha.ano,
+                    linha.cor
                 );
 
-                novoCarro.setIdCarro(carro.id);
+                // atribui o ID objeto
+                novoCarro.setIdCarro(linha.id_carro);
 
-                // adicionando o carro na lista
+                // adiciona o objeto na lista
                 listaDeCarros.push(novoCarro);
             });
 
-            //retornando a lista de carros para que chamou a função
-            return listaDeCarros;                                                                                                                                   
-
+            // retorna a lista de carros
+            return listaDeCarros;
         } catch (error) {
-            console.log(`Erro ao acessar o modelo: ${error}`);
+            console.log('Erro ao buscar lista de carros');
             return null;
         }
     }
