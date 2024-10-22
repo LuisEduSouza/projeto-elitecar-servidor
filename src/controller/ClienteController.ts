@@ -1,6 +1,13 @@
 import { Request,Response } from "express";
 import { Cliente } from "../model/Cliente";
 
+interface ClienteDTO {
+    nome: string,
+    cpf: string,
+    telefone: string
+}
+
+
 /**
 * A classe `ClienteController` estende a classe `Cliente` e é responsável por controlar as requisições relacionadas aos clientes.
 * 
@@ -23,8 +30,54 @@ export class ClienteController extends Cliente {
             
             return res.status(200).json(listaDeClientes);
         } catch (error) {
-            console.log('Erro ao acessar listagem de carros');
-            return res.status(400).json({ mensagem: "Não foi possível acessar a listagem de carros" });
+            console.log('Erro ao acessar listagem de clientes');
+            return res.status(400).json({ mensagem: "Não foi possível acessar a listagem de clientes" });
+        }
+    }
+
+   /**
+    * Método controller para cadastrar um novo cliente.
+    * 
+    * Esta função recebe uma requisição HTTP contendo os dados de um cliente no corpo da requisição
+    * e tenta cadastrar este cliente no banco de dados utilizando a função `cadastroCliente`. Caso o cadastro 
+    * seja bem-sucedido, retorna uma resposta HTTP 200 com uma mensagem de sucesso. Caso contrário, retorna
+    * uma resposta HTTP 400 com uma mensagem de erro.
+    * 
+    * @param {Request} req - Objeto de requisição HTTP, contendo o corpo com os dados do cliente no formato `ClienteDTO`.
+    * @param {Response} res - Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
+    * @returns {Promise<Response>} - Retorna uma resposta HTTP com o status 200 em caso de sucesso, ou 400 em caso de erro.
+    * 
+    * @throws {Error} - Se ocorrer um erro durante o processo de cadastro, uma mensagem é exibida no console e uma 
+    *                   resposta HTTP 400 com uma mensagem de erro é enviada ao cliente.
+    */
+    static async novo(req: Request, res: Response): Promise<Response> {
+        try {
+            // Recuperando informações do corpo da requisição e colocando em um objeto da interface ClienteDTO
+            const clienteRecebido: ClienteDTO = req.body;
+
+            // Instanciando um objeto do tipo Cliente com as informações recebidas
+            const novoCliente = new Cliente(clienteRecebido.nome, 
+                                            clienteRecebido.cpf, 
+                                            clienteRecebido.telefone);
+
+            // Chamando a função de cadastro passando o objeto como parâmetro
+            const repostaClasse = await Cliente.cadastroCliente(novoCliente);
+
+            // Verifica a resposta da função
+            if(repostaClasse) {
+                // Retorna uma mensagem de sucesso
+                return res.status(200).json({ mensagem: "Cliente cadastrado com sucesso!" });
+            } else {
+                // Retorna uma mensagem de erro
+                return res.status(400).json({ mensagem: "Erro ao cadastrar o cliente. Entre em contato com o administrador do sistema." });
+            }
+            
+        } catch (error) {
+            // Lança uma mensagem de erro no console
+            console.log(`Erro ao cadastrar um cliente. ${error}`);
+
+            // Retorna uma mensagem de erro para o cliente
+            return res.status(400).json({ mensagem: "Não foi possível cadastrar o cliente. Entre em contato com o administrador do sistema." });
         }
     }
 }

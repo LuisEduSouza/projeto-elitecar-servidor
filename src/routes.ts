@@ -6,19 +6,34 @@ import { PedidoVendaController } from "./controller/PedidoVendaController";
 // Cria um roteador
 const router = Router();
 
-// Criando sua rota principal para a aplicação
-router.get("/", (req:Request, res:Response) => {
-    res.json({ mensagem: "Bem-vindo ao meu servidor"});
+// Criando uma rota principal para a aplicação
+router.get("/", (req: Request, res: Response) => {
+    res.json({ mensagem: "Olá, mundo!" });
 });
 
-// ROTAS PARA CARROS
-router.get('/lista/carros', CarroController.todos);
+/* 
+* ROTAS PARA CARROS
+*/ 
+// Rota para listar os carros
+router.get("/lista/carros", CarroController.todos);
+//Rota para cadastro de carros
+router.post("/novo/carro", CarroController.novo);
 
-// ROTAS PARA CLIENTES
-router.get('/lista/clientes', ClienteController.todos);
+/* 
+* ROTAS PARA CLIENTES
+*/ 
+// Rota para listar os clientes
+router.get("/lista/clientes", ClienteController.todos);
+//Rota para cadastro de clientes
+router.post("/novo/cliente", ClienteController.novo);
 
-// ROTAS PARA PEDIDOS
-router.get('/lista/pedidos', PedidoVendaController.todos);
+/* 
+* ROTAS PARA PEDIDOS
+*/ 
+// Rota para listar os pedidos
+router.get("/lista/pedidos", PedidoVendaController.todos);
+//Rota para cadastro de clientes
+router.post("/novo/pedido", PedidoVendaController.novo);
 
-// Exportando as rotas
-export{ router };
+// exportando as rotas
+export { router };
