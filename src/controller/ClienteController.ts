@@ -1,162 +1,150 @@
 import { Request, Response } from "express";
-import { PedidoVenda } from "../model/PedidoVenda";
+import { Cliente } from "../model/Cliente";
 
-interface PedidoDTO {
-    idCliente: number,
-    idCarro: number,
-    dataPedido: Date,
-    valorPedido: number;
+// Interface que define o formato esperado para os dados do cliente.
+interface ClienteDTO {
+    nome: string,
+    cpf: string,
+    telefone: string
 }
 
 /**
- * A classe `PedidoVendaController` estende a classe `PedidoVenda` e é responsável por controlar as requisições relacionadas aos pedidos de venda.
+ * A classe `ClienteController` estende a classe `Cliente` e é responsável por controlar as requisições relacionadas aos clientes.
  * 
- * - Como um controlador dentro de uma API REST, esta classe gerencia as operações relacionadas ao recurso "pedido de venda".
- * - Herdando de `PedidoVenda`, ela pode acessar os métodos e propriedades da classe base.
+ * - Como um controlador em uma API REST, esta classe gerencia as operações relacionadas ao recurso "cliente".
+ * - Herdando de `Cliente`, ela pode acessar os métodos e propriedades da classe base.
  */
-export class PedidoVendaController extends PedidoVenda {
+export class ClienteController extends Cliente {
 
     /**
-     * Lista todos os pedidos de venda.
+     * Lista todos os clientes.
+     * 
+     * Esta função responde a uma requisição HTTP listando todos os clientes disponíveis no banco de dados.
+     * Utiliza o método estático `listagemClientes` da classe `Cliente` para buscar os dados.
+     * 
      * @param req Objeto de requisição HTTP.
      * @param res Objeto de resposta HTTP.
-     * @returns Lista de pedidos de venda em formato JSON com status 200 em caso de sucesso.
-     * @throws Retorna um status 400 com uma mensagem de erro caso ocorra uma falha ao acessar a listagem de pedidos de venda.
+     * @returns Lista de clientes em formato JSON com status 200 em caso de sucesso.
+     * @throws Retorna um status 400 com uma mensagem de erro caso ocorra uma falha ao acessar a listagem de clientes.
      */
     static async todos(req: Request, res: Response): Promise<Response> {
         try {
-            const listaPedidos = await PedidoVenda.listagemPedidos();
+            // Chama o método para listar os clientes no banco de dados.
+            const listaDeClientes = await Cliente.listagemClientes();
+            console.log(listaDeClientes);
 
-            return res.status(200).json(listaPedidos);
+            // Retorna a lista em formato JSON com status 200.
+            return res.status(200).json(listaDeClientes);
         } catch (error) {
-            console.log('Erro ao acessar listagem de carros');
-            return res.status(400).json({ mensagem: "Não foi possível acessar a listagem de carros" });
+            // Loga um erro no console e retorna uma mensagem de erro ao cliente.
+            console.log('Erro ao acessar listagem de clientes');
+            return res.status(400).json({ mensagem: "Não foi possível acessar a listagem de clientes" });
         }
     }
 
     /**
-     * Método controller para cadastrar um novo pedido de venda.
+     * Cadastra um novo cliente.
      * 
-     * Esta função recebe uma requisição HTTP contendo os dados de um pedido de venda no corpo da requisição
-     * e tenta cadastrar este pedido no banco de dados utilizando a função `cadastroPedido`. Caso o cadastro 
-     * seja bem-sucedido, retorna uma resposta HTTP 200 com uma mensagem de sucesso. Caso contrário, retorna
-     * uma resposta HTTP 400 com uma mensagem de erro.
+     * Recebe os dados do cliente no corpo da requisição, cria uma instância de `Cliente` e utiliza 
+     * o método estático `cadastroCliente` para inserir os dados no banco.
      * 
-     * @param {Request} req - Objeto de requisição HTTP, contendo o corpo com os dados do pedido no formato `PedidoDTO`.
-     * @param {Response} res - Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
-     * @returns {Promise<Response>} - Retorna uma resposta HTTP com o status 200 em caso de sucesso, ou 400 em caso de erro.
-     * 
-     * @throws {Error} - Se ocorrer um erro durante o processo de cadastro, uma mensagem é exibida no console e uma 
-     *                   resposta HTTP 400 com uma mensagem de erro é enviada ao cliente.
+     * @param req Objeto de requisição HTTP, contendo os dados do cliente no corpo da requisição no formato `ClienteDTO`.
+     * @param res Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
+     * @returns Resposta HTTP com status 200 e uma mensagem de sucesso ou 400 com uma mensagem de erro.
      */
     static async novo(req: Request, res: Response): Promise<Response> {
         try {
-            // Recuperando informações do corpo da requisição e colocando em um objeto da interface PedidoDTO
-            const pedidoRecebido: PedidoDTO = req.body;
+            // Recupera os dados do cliente do corpo da requisição.
+            const clienteRecebido: ClienteDTO = req.body;
 
-            // Instanciando um objeto do tipo PedidoVenda com as informações recebidas
-            const novoPedido = new PedidoVenda(
-                pedidoRecebido.idCliente, 
-                pedidoRecebido.idCarro, 
-                pedidoRecebido.dataPedido,
-                pedidoRecebido.valorPedido
-            );
+            // Cria uma nova instância de Cliente com os dados recebidos.
+            const novoCliente = new Cliente(clienteRecebido.nome, clienteRecebido.cpf, clienteRecebido.telefone);
 
-            // Chamando a função de cadastro passando o objeto como parâmetro
-            const repostaClasse = await PedidoVenda.cadastroPedido(
-                pedidoRecebido.idCliente,
-                pedidoRecebido.idCarro,
-                pedidoRecebido.dataPedido,
-                pedidoRecebido.valorPedido
-            );
+            // Chama o método para cadastrar o cliente no banco de dados.
+            const respostaClasse = await Cliente.cadastroCliente(novoCliente);
 
-            // Verifica a resposta da função
-            if (repostaClasse) {
-                // Retorna uma mensagem de sucesso
-                return res.status(200).json({ mensagem: "Pedido cadastrado com sucesso!" });
+            // Verifica a resposta do método e retorna a mensagem apropriada.
+            if (respostaClasse) {
+                return res.status(200).json({ mensagem: "Cliente cadastrado com sucesso!" });
             } else {
-                // Retorna uma mensagem de erro caso o cadastro falhe
-                return res.status(400).json({ mensagem: "Erro ao cadastrar o pedido. Entre em contato com o administrador do sistema." });
+                return res.status(400).json({ mensagem: "Erro ao cadastrar o cliente. Entre em contato com o administrador do sistema." });
             }
-            
         } catch (error) {
-            // Lança uma mensagem de erro no console com detalhes
-            console.log(`Erro ao cadastrar um pedido. ${error}`);
-
-            // Retorna uma mensagem de erro para o pedido
-            return res.status(400).json({ mensagem: "Não foi possível cadastrar o pedido. Entre em contato com o administrador do sistema." });
+            // Loga o erro no console e retorna uma mensagem de erro ao cliente.
+            console.log(`Erro ao cadastrar um cliente. ${error}`);
+            return res.status(400).json({ mensagem: "Não foi possível cadastrar o cliente. Entre em contato com o administrador do sistema." });
         }
     }
 
     /**
-     * Método controller para remover um pedido de venda.
+     * Remove um cliente.
      * 
-     * Esta função recebe o ID do pedido de venda através dos parâmetros da URL, 
-     * tenta removê-lo do banco de dados utilizando a função `removerPedido` e retorna 
-     * uma resposta HTTP indicando o sucesso ou a falha da operação.
+     * Recebe o identificador do cliente a ser removido via parâmetro na URL e utiliza o método `removerCliente` 
+     * para excluí-lo do banco de dados.
      * 
-     * @param {Request} req - Objeto de requisição HTTP, contendo o ID do pedido nos parâmetros.
-     * @param {Response} res - Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
-     * @returns {Promise<Response>} - Retorna uma resposta HTTP com o status 200 em caso de sucesso, ou 400 em caso de erro.
-     * 
-     * @throws {Error} - Se ocorrer um erro durante a remoção, uma mensagem é exibida no console e uma resposta HTTP 400 com 
-     *                   uma mensagem de erro é enviada ao cliente.
+     * @param req Objeto de requisição HTTP contendo o ID do cliente nos parâmetros.
+     * @param res Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
+     * @returns Resposta HTTP com status 200 e uma mensagem de sucesso ou 400 com uma mensagem de erro.
      */
     static async remover(req: Request, res: Response): Promise<Response> {
         try {
-            const idPedido = parseInt(req.params.idPedido as string);
+            // Recupera o ID do cliente a ser removido a partir dos parâmetros da requisição.
+            const idCliente = parseInt(req.params.idCliente as string);
 
-            const respostaModelo = await PedidoVenda.removerPedido(idPedido);
+            // Chama o método para remover o cliente do banco de dados.
+            const respostaModelo = await Cliente.removerCliente(idCliente);
 
+            // Verifica a resposta do método e retorna a mensagem apropriada.
             if (respostaModelo) {
-                return res.status(200).json({ mensagem: "Pedido removido com sucesso!" });
+                return res.status(200).json({ mensagem: "Cliente removido com sucesso!" });
             } else {
-                return res.status(400).json({ mensagem: "Erro ao remover o pedido. Entre em contato com o administrador do sistema." });
+                return res.status(400).json({ mensagem: "Erro ao remover o cliente. Entre em contato com o administrador do sistema." });
             }
         } catch (error) {
-            console.log(`Erro ao remover um pedido. ${error}`);
-            return res.status(400).json({ mensagem: "Não foi possível remover o pedido. Entre em contato com o administrador do sistema." });
+            // Loga o erro no console e retorna uma mensagem de erro ao cliente.
+            console.log(`Erro ao remover um cliente. ${error}`);
+            return res.status(400).json({ mensagem: "Não foi possível remover o cliente. Entre em contato com o administrador do sistema." });
         }
     }
 
     /**
-     * Método controller para atualizar um pedido de venda.
+     * Atualiza os dados de um cliente.
      * 
-     * Esta função recebe o ID do pedido de venda através dos parâmetros da URL e os dados 
-     * atualizados no corpo da requisição. Tenta atualizar o pedido no banco de dados utilizando a 
-     * função `atualizarPedido` e retorna uma resposta HTTP indicando o sucesso ou a falha da operação.
+     * Recebe o identificador do cliente a ser atualizado via parâmetro e os novos dados via corpo da requisição.
+     * Cria uma instância de `Cliente` com os dados atualizados e utiliza o método `atualizarCliente` para 
+     * aplicar as mudanças no banco de dados.
      * 
-     * @param {Request} req - Objeto de requisição HTTP, contendo o ID do pedido nos parâmetros e os dados atualizados no corpo.
-     * @param {Response} res - Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
-     * @returns {Promise<Response>} - Retorna uma resposta HTTP com o status 200 em caso de sucesso, ou 400 em caso de erro.
-     * 
-     * @throws {Error} - Se ocorrer um erro durante a atualização, uma mensagem é exibida no console e uma resposta HTTP 400 com 
-     *                   uma mensagem de erro é enviada ao cliente.
+     * @param req Objeto de requisição HTTP contendo o ID do cliente nos parâmetros e os novos dados no corpo.
+     * @param res Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
+     * @returns Resposta HTTP com status 200 e uma mensagem de sucesso ou 400 com uma mensagem de erro.
      */
     static async atualizar(req: Request, res: Response): Promise<Response> {
         try {
-            const idPedidoRecebido = parseInt(req.params.idPedido as string);
-            const PedidoRecebido: PedidoDTO = req.body;
+            // Recupera o ID do cliente a ser atualizado dos parâmetros da requisição.
+            const idClienteRecebido = parseInt(req.params.idCliente as string);
 
-            const PedidoAtualizado = new PedidoVenda(
-                PedidoRecebido.idCliente,
-                PedidoRecebido.idCarro,
-                PedidoRecebido.dataPedido,
-                PedidoRecebido.valorPedido
-            );
+            // Recupera os novos dados do cliente do corpo da requisição.
+            const clienteRecebido: ClienteDTO = req.body;
 
-            PedidoAtualizado.setIdPedido(idPedidoRecebido);
+            // Cria uma nova instância de Cliente com os dados atualizados.
+            const clienteAtualizado = new Cliente(clienteRecebido.nome, clienteRecebido.cpf, clienteRecebido.telefone);
 
-            const resposta = await PedidoVenda.atualizarPedido(PedidoAtualizado);
+            // Define o ID do cliente na instância criada.
+            clienteAtualizado.setIdCliente(idClienteRecebido);
 
+            // Chama o método para atualizar o cliente no banco de dados.
+            const resposta = await Cliente.atualizarCliente(clienteAtualizado);
+
+            // Verifica a resposta do método e retorna a mensagem apropriada.
             if (resposta) {
-                return res.status(200).json({ mensagem: "Pedido atualizado com sucesso!" });
+                return res.status(200).json({ mensagem: "Cliente atualizado com sucesso!" });
             } else {
-                return res.status(400).json({ mensagem: "Erro ao atualizar o Pedido. Entre em contato com o administrador do sistema." });
+                return res.status(400).json({ mensagem: "Erro ao atualizar o cliente. Entre em contato com o administrador do sistema." });
             }
         } catch (error) {
-            console.log(`Erro ao atualizar um pedido. ${error}`);
-            return res.status(400).json({ mensagem: "Não foi possível atualizar o pedido. Entre em contato com o administrador do sistema." });
+            // Loga o erro no console e retorna uma mensagem de erro ao cliente.
+            console.log(`Erro ao atualizar um cliente. ${error}`);
+            return res.status(400).json({ mensagem: "Não foi possível atualizar o cliente. Entre em contato com o administrador do sistema." });
         }
     }
 }
