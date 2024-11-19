@@ -10,18 +10,22 @@ export class PedidoVenda {
      * Identificador único do pedido de venda.
      */
     private idPedido: number = 0;
+
     /**
      * Identificador do carro associado ao pedido de venda.
      */
     private idCarro: number;
+
     /**
      * Identificador do cliente associado ao pedido de venda.
      */
     private idCliente: number;
+
     /**
      * Data do pedido de venda.
      */
     private dataPedido: Date;
+
     /**
      * Valor total do pedido.
      */
@@ -131,23 +135,38 @@ export class PedidoVenda {
      * - Caso ocorra uma falha na consulta ao banco, a função captura o erro, exibe uma mensagem no console e retorna `null`.
      */
     static async listagemPedidos(): Promise<Array<PedidoVenda> | null> {
-        const listaDePedidos: Array<PedidoVenda> = [];
+        const listaDePedidos: Array<any> = [];
 
         try {
-            const querySelectPedidos = `SELECT * FROM pedido_venda;`;
+            const querySelectPedidos = `SELECT 
+                pedido_venda.id_pedido,
+                pedido_venda.id_carro,
+                pedido_venda.id_cliente,
+                TO_CHAR(pedido_venda.data_pedido, 'DD/MM/YYYY') AS data_pedido_br,
+                TO_CHAR(pedido_venda.valor_pedido, 'FM999G999D00') AS valor_total_br,
+                cliente.nome AS nome_cliente,
+                carro.modelo AS modelo_carro
+            FROM 
+                pedido_venda
+            JOIN 
+                cliente ON pedido_venda.id_cliente = cliente.id_cliente
+            JOIN 
+                carro ON pedido_venda.id_carro = carro.id_carro;`;
+
             const respostaBD = await database.query(querySelectPedidos);
 
             respostaBD.rows.forEach((linha) => {
-                const novoPedidoVenda = new PedidoVenda(
-                    linha.id_carro,
-                    linha.id_cliente,
-                    linha.data_pedido,
-                    parseFloat(linha.valor_pedido)
-                );
+                let pedidoVenda = {
+                    idPedido: linha.id_pedido,
+                    idCarro: linha.id_carro,
+                    idCliente: linha.id_cliente,
+                    dataPedido: linha.data_pedido_br,
+                    valorTotal: parseFloat(linha.valor_total_br),
+                    nomeCliente: linha.nome_cliente,
+                    modeloCarro: linha.modelo_carro
+                };
 
-                novoPedidoVenda.setIdPedido(linha.id_pedido);
-
-                listaDePedidos.push(novoPedidoVenda);
+                listaDePedidos.push(pedidoVenda);
             });
 
             return listaDePedidos;
@@ -173,16 +192,15 @@ export class PedidoVenda {
     * @throws {Error} - Em caso de erro durante o processo, uma mensagem de erro é exibida no console e o método 
     *                   retorna `false`.
     */
-
     static async cadastroPedido(idCliente: number, idCarro: number, dataPedido: Date, valorPedido: number): Promise<boolean> {
         try {
             // Query para fazer insert de um pedido na tabela pedido_venda
             const queryInsertPedido = `INSERT INTO pedido_venda (id_cliente, id_carro, data_pedido, valor_pedido) VALUES
-                                        (${idCliente}, 
-                                        ${idCarro}, 
-                                        '${dataPedido}', 
-                                        ${valorPedido})
-                                        RETURNING id_pedido;`;
+                (${idCliente}, 
+                ${idCarro}, 
+                '${dataPedido}', 
+                ${valorPedido})
+                RETURNING id_pedido;`;
 
             // Executa a query no banco e armazena a resposta
             const respostaBD = await database.query(queryInsertPedido);
@@ -206,4 +224,33 @@ export class PedidoVenda {
             return false;
         }
     }
+
+    static async removerPedido(idPedido: number): Promise<boolean> {
+        try {
+            // query para fazer delete de um pedido no banco de dados
+            const queryDeletePedido = `DELETE FROM pedido_venda WHERE id_pedido = ${idPedido};`;
+
+            // executa a query no banco e armazena a resposta do banco de ddos
+            const respostaBD = await database.query(queryDeletePedido);
+
+            // verifica se a quantidade de linhas alteradas é diferente de 0
+            if (respostaBD.rowCount != 0) {
+                console.log(`Pedido removido com sucesso! ID do pedido: ${idPedido}`);
+                // true significa que a removação foi bem sucedida
+                return true;
+            }
+            // false significa que a remoção NÃO foi bem sucedida.
+            return false;
+
+            // tratando o erro
+        } catch (error) {
+            // imprime outra mensagem junto com o erro
+            console.log('Erro ao remover o pedido. Verifique os logs para mais detalhes.');
+            // imprime o erro no console
+            console.log(error);
+            // retorno um valor falso
+            return false;
+        }
+    }
 }
+
