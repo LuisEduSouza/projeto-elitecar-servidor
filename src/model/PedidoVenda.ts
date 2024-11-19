@@ -1,5 +1,6 @@
 import { DatabaseModel } from "./DatabaseModel";
 
+// Cria uma instância do modelo de banco de dados e inicializa o pool de conexões.
 const database = new DatabaseModel().pool;
 
 /**
@@ -138,6 +139,7 @@ export class PedidoVenda {
         const listaDePedidos: Array<any> = [];
 
         try {
+            // Define a query SQL para buscar dados de pedidos de venda e informações associadas.
             const querySelectPedidos = `SELECT 
                 pedido_venda.id_pedido,
                 pedido_venda.id_carro,
@@ -153,8 +155,10 @@ export class PedidoVenda {
             JOIN 
                 carro ON pedido_venda.id_carro = carro.id_carro;`;
 
+            // Executa a consulta no banco de dados.
             const respostaBD = await database.query(querySelectPedidos);
 
+            // Processa cada linha retornada e cria objetos correspondentes.
             respostaBD.rows.forEach((linha) => {
                 let pedidoVenda = {
                     idPedido: linha.id_pedido,
@@ -166,35 +170,30 @@ export class PedidoVenda {
                     modeloCarro: linha.modelo_carro
                 };
 
+                // Adiciona o objeto criado à lista de pedidos.
                 listaDePedidos.push(pedidoVenda);
             });
 
+            // Retorna a lista de pedidos.
             return listaDePedidos;
         } catch (error) {
+            // Loga a mensagem de erro caso algo dê errado na consulta.
             console.log('Erro ao buscar lista de pedidos');
             return null;
         }
     }
 
     /**
-    * Realiza o cadastro de um pedido de venda no banco de dados.
-    * 
-    * Esta função recebe o ID do cliente, o ID do carro, a data do pedido e o valor do pedido como parâmetros,
-    * e insere esses dados na tabela `pedido_venda` no banco de dados. O método retorna um valor booleano indicando 
-    * se o cadastro foi realizado com sucesso.
-    * 
-    * @param {number} idCliente - ID do cliente relacionado ao pedido.
-    * @param {number} idCarro - ID do carro relacionado ao pedido.
-    * @param {Date} dataPedido - Data do pedido de venda.
-    * @param {number} valorPedido - Valor do pedido de venda.
-    * @returns {Promise<boolean>} - Retorna `true` se o pedido foi cadastrado com sucesso, e `false` caso contrário.
-    * 
-    * @throws {Error} - Em caso de erro durante o processo, uma mensagem de erro é exibida no console e o método 
-    *                   retorna `false`.
-    */
+     * Realiza o cadastro de um pedido de venda no banco de dados.
+     * @param idCliente - ID do cliente relacionado ao pedido.
+     * @param idCarro - ID do carro relacionado ao pedido.
+     * @param dataPedido - Data do pedido de venda.
+     * @param valorPedido - Valor do pedido de venda.
+     * @returns Retorna `true` se o pedido foi cadastrado com sucesso, e `false` caso contrário.
+     */
     static async cadastroPedido(idCliente: number, idCarro: number, dataPedido: Date, valorPedido: number): Promise<boolean> {
         try {
-            // Query para fazer insert de um pedido na tabela pedido_venda
+            // Query para inserir dados do pedido de venda na tabela correspondente.
             const queryInsertPedido = `INSERT INTO pedido_venda (id_cliente, id_carro, data_pedido, valor_pedido) VALUES
                 (${idCliente}, 
                 ${idCarro}, 
@@ -202,55 +201,80 @@ export class PedidoVenda {
                 ${valorPedido})
                 RETURNING id_pedido;`;
 
-            // Executa a query no banco e armazena a resposta
+            // Executa a query no banco de dados e captura a resposta.
             const respostaBD = await database.query(queryInsertPedido);
 
-            // Verifica se a quantidade de linhas modificadas é diferente de 0
+            // Verifica se pelo menos uma linha foi afetada.
             if (respostaBD.rowCount != 0) {
                 console.log(`Pedido cadastrado com sucesso! ID do pedido: ${respostaBD.rows[0].id_pedido}`);
-                // Retorna true indicando que o cadastro foi realizado com sucesso
                 return true;
             }
 
-            // Retorna false se o cadastro não foi realizado
             return false;
 
         } catch (error) {
-            // Imprime uma mensagem de erro no console
+            // Loga mensagens de erro detalhadas no console.
             console.log('Erro ao cadastrar o pedido. Verifique os logs para mais detalhes.');
-            // Imprime os detalhes do erro no console
             console.log(error);
-            // Retorna false em caso de erro
             return false;
         }
     }
 
+    /**
+     * Remove um pedido de venda do banco de dados com base no ID.
+     * @param idPedido - ID do pedido a ser removido.
+     * @returns Retorna `true` se o pedido foi removido com sucesso, e `false` caso contrário.
+     */
     static async removerPedido(idPedido: number): Promise<boolean> {
         try {
-            // query para fazer delete de um pedido no banco de dados
+            // Query para deletar o pedido do banco de dados.
             const queryDeletePedido = `DELETE FROM pedido_venda WHERE id_pedido = ${idPedido};`;
 
-            // executa a query no banco e armazena a resposta do banco de ddos
+            // Executa a query e verifica a resposta.
             const respostaBD = await database.query(queryDeletePedido);
 
-            // verifica se a quantidade de linhas alteradas é diferente de 0
             if (respostaBD.rowCount != 0) {
                 console.log(`Pedido removido com sucesso! ID do pedido: ${idPedido}`);
-                // true significa que a removação foi bem sucedida
                 return true;
             }
-            // false significa que a remoção NÃO foi bem sucedida.
+
             return false;
 
-            // tratando o erro
         } catch (error) {
-            // imprime outra mensagem junto com o erro
             console.log('Erro ao remover o pedido. Verifique os logs para mais detalhes.');
-            // imprime o erro no console
             console.log(error);
-            // retorno um valor falso
+            return false;
+        }
+    }
+
+    /**
+     * Atualiza os dados de um pedido de venda existente no banco de dados.
+     * @param pedido - Objeto do tipo `PedidoVenda` com os dados atualizados do pedido.
+     * @returns Retorna `true` se o pedido foi atualizado com sucesso, e `false` caso contrário.
+     */
+    static async atualizarPedido(pedido: PedidoVenda): Promise<boolean> {
+        try {
+            // Query para atualizar os dados do pedido no banco.
+            const queryUpdatePedido = `UPDATE pedido_venda
+                                        SET id_cliente = ${pedido.getIdCarro()}, 
+                                            id_carro = ${pedido.getIdCliente()}, 
+                                            data_pedido = '${pedido.getDataPedido()}',
+                                            valor_pedido = ${pedido.getValorPedido()}
+                                        WHERE id_pedido = ${pedido.getIdPedido()};`;
+
+            const respostaBD = await database.query(queryUpdatePedido);
+
+            if (respostaBD.rowCount != 0) {
+                console.log(`Pedido atualizado com sucesso! ID do pedido: ${pedido.getIdPedido()}`);
+                return true;
+            }
+
+            return false;
+
+        } catch (error) {
+            console.log('Erro ao atualizar o pedido. Verifique os logs para mais detalhes.');
+            console.log(error);
             return false;
         }
     }
 }
-

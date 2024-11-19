@@ -83,14 +83,14 @@ export class PedidoVendaController extends PedidoVenda {
             // Lança uma mensagem de erro no console com detalhes
             console.log(`Erro ao cadastrar um pedido. ${error}`);
 
-            // Retorna uma mensagem de erro para o cliente
+            // Retorna uma mensagem de erro para o pedido
             return res.status(400).json({ mensagem: "Não foi possível cadastrar o pedido. Entre em contato com o administrador do sistema." });
         }
     }
 
     static async remover(req: Request, res: Response): Promise<Response> {
         try {
-            // recuperando o id do cliente que será removido
+            // recuperando o id do pedido que será removido
             const idPedido= parseInt(req.params.idPedido as string);
 
             // chamando a função de remoção de carro
@@ -110,6 +110,45 @@ export class PedidoVendaController extends PedidoVenda {
 
             // retorna uma mensagem de erro para quem chamou a mensagem
             return res.status(400).json({ mensagem: "Não foi possível remover o pedido. Entre em contato com o administrador do sistema." });
+        }
+    }
+
+    static async atualizar(req: Request, res: Response): Promise<Response> {
+        try {
+            // recuperando o id do pedido que será atualizado
+            const idPedidoRecebido = parseInt(req.params.idPedido as string);
+
+            // recuperando as informações do pedido que serão atualizadas
+            const PedidoRecebido: PedidoDTO = req.body;
+
+            // instanciando um objeto do tipo pedido com as informações recebidas
+            const PedidoAtualizado = new PedidoVenda(
+                PedidoRecebido.idCliente,
+                PedidoRecebido.idCarro,
+                PedidoRecebido.dataPedido,
+                PedidoRecebido.valorPedido
+                );
+
+            // setando o id do pedido que será atualizado
+            PedidoAtualizado.setIdPedido(idPedidoRecebido);
+
+            // chamando a função de atualização de pedido
+            const resposta = await PedidoVenda.atualizarPedido(PedidoAtualizado);
+
+            // verificando a resposta da função
+            if (resposta) {
+                // retornar uma mensagem de sucesso
+                return res.status(200).json({ mensagem: "Pedido atualizado com sucesso!" });
+            } else {
+                // retorno uma mensagem de erro
+                return res.status(400).json({ mensagem: "Erro ao atualizar o Pedido. Entre em contato com o administrador do sistema." })
+            }
+        } catch (error) {
+            // lança uma mensagem de erro no console
+            console.log(`Erro ao atualizar um pedido. ${error}`);
+
+            // retorna uma mensagem de erro há quem chamou a mensagem
+            return res.status(400).json({ mensagem: "Não foi possível atualizar o pedido. Entre em contato com o administrador do sistema." });
         }
     }
 }

@@ -112,6 +112,7 @@ export class Cliente {
 
     /**
      * Busca e retorna uma lista de clientes do banco de dados.
+     * 
      * @returns Um array de objetos do tipo `Cliente` em caso de sucesso ou `null` se ocorrer um erro durante a consulta.
      * 
      * - A função realiza uma consulta SQL para obter todos os registros da tabela "cliente".
@@ -161,14 +162,13 @@ export class Cliente {
      * @throws {Error} - Se ocorrer algum erro durante a execução do cadastro, uma mensagem de erro é exibida
      *                   no console junto com os detalhes do erro.
      */
-
     static async cadastroCliente(cliente: Cliente): Promise<boolean> {
         try {
             // query para fazer insert de um cliente no banco de dados
             const queryInsertCliente = `INSERT INTO cliente (nome,cpf,telefone) VALUES
                                         ('${cliente.getNome()}', 
                                         '${cliente.getCpf()}', 
-                                        ${cliente.getTelefone()})
+                                        '${cliente.getTelefone()}')
                                         RETURNING id_cliente;`;
 
             // executa a query no banco e armazena a resposta
@@ -194,27 +194,67 @@ export class Cliente {
         }
     }
 
+    /**
+     * Realiza a remoção de um cliente do banco de dados.
+     * 
+     * @param idCliente - O identificador único do cliente que será removido.
+     * @returns {Promise<boolean>} - Retorna `true` se a remoção for bem-sucedida, e `false` caso contrário.
+     */
     static async removerCliente(idCliente: number): Promise<boolean> {
         try {
             // query para fazer delete de um cliente no banco de dados
             const queryDeleteCliente = `DELETE FROM cliente WHERE id_cliente = ${idCliente};`;
 
-            // executa a query no banco e armazena a resposta do banco de ddos
+            // executa a query no banco e armazena a resposta
             const respostaBD = await database.query(queryDeleteCliente);
 
             // verifica se a quantidade de linhas alteradas é diferente de 0
             if (respostaBD.rowCount != 0) {
                 console.log(`Cliente removido com sucesso! ID do cliente: ${idCliente}`);
-                // true significa que a removação foi bem sucedida
+                // true significa que a remoção foi bem sucedida
                 return true;
             }
             // false significa que a remoção NÃO foi bem sucedida.
             return false;
-
-            // tratando o erro
         } catch (error) {
             // imprime outra mensagem junto com o erro
             console.log('Erro ao remover o cliente. Verifique os logs para mais detalhes.');
+            // imprime o erro no console
+            console.log(error);
+            // retorno um valor falso
+            return false;
+        }
+    }
+
+    /**
+     * Realiza a atualização dos dados de um cliente no banco de dados.
+     * 
+     * @param cliente - O objeto `Cliente` que contém os dados atualizados a serem gravados no banco de dados.
+     * @returns {Promise<boolean>} - Retorna `true` se a atualização for bem-sucedida, e `false` caso contrário.
+     */
+    static async atualizarCliente(cliente: Cliente): Promise<boolean> {
+        try {
+            // query para fazer update de um cliente no banco de dados
+            const queryUpdateCliente = `UPDATE cliente
+                                        SET nome = '${cliente.getNome()}', 
+                                            cpf = '${cliente.getCpf()}', 
+                                            telefone = '${cliente.getTelefone()}'
+                                        WHERE id_cliente = ${cliente.getIdCliente()};`;
+
+            // executa a query no banco e armazena a resposta
+            const respostaBD = await database.query(queryUpdateCliente);
+
+            // verifica se a quantidade de linhas modificadas é diferente de 0
+            if (respostaBD.rowCount != 0) {
+                console.log(`Cliente atualizado com sucesso! ID do cliente: ${cliente.getIdCliente()}`);
+                // true significa que a atualização foi bem sucedida
+                return true;
+            }
+            // false significa que a atualização NÃO foi bem sucedida.
+            return false;
+        } catch (error) {
+            // imprime outra mensagem junto com o erro
+            console.log('Erro ao atualizar o cliente. Verifique os logs para mais detalhes.');
             // imprime o erro no console
             console.log(error);
             // retorno um valor falso

@@ -18,23 +18,29 @@ export class CarroController extends Carro {
 
     /**
     * Lista todos os carros.
-    * @param req Objeto de requisição HTTP.
-    * @param res Objeto de resposta HTTP.
-    * @returns Lista de carros em formato JSON com status 200 em caso de sucesso.
-    * @throws Retorna um status 400 com uma mensagem de erro caso ocorra uma falha ao acessar a listagem de carros.
+    * 
+    * Este método retorna todos os carros cadastrados no sistema, acessando a função de listagem 
+    * no modelo `Carro`.
+    * 
+    * @param {Request} req - Objeto de requisição HTTP.
+    * @param {Response} res - Objeto de resposta HTTP.
+    * @returns {Promise<Response>} - Retorna uma lista de carros em formato JSON com status 200 em caso de sucesso,
+    *                                ou um status 400 com mensagem de erro em caso de falha.
+    * 
+    * @throws {Error} - Em caso de erro, uma mensagem é exibida no console e uma resposta HTTP 400 é enviada ao cliente.
     */
     static async todos(req: Request, res: Response): Promise<Response> {
         try {
             // acessa a função de listar os carros e armazena o resultado
             const listaDeCarros = await Carro.listagemCarros();
 
-            // retorna a lista de carros há quem fez a requisição web
+            // retorna a lista de carros a quem fez a requisição web
             return res.status(200).json(listaDeCarros);
         } catch (error) {
             // lança uma mensagem de erro no console
             console.log('Erro ao acessar listagem de carros');
 
-            // retorna uma mensagem de erro para quem chamou a mensagem
+            // retorna uma mensagem de erro para quem chamou a função
             return res.status(400).json({ mensagem: "Não foi possível acessar a listagem de carros" });
         }
     }
@@ -60,32 +66,42 @@ export class CarroController extends Carro {
             const carroRecebido: CarroDTO = req.body;
 
             // instanciando um objeto do tipo carro com as informações recebidas
-            const novoCarro = new Carro(carroRecebido.marca, 
-                                        carroRecebido.modelo, 
-                                        carroRecebido.ano, 
-                                        carroRecebido.cor);
+            const novoCarro = new Carro(carroRecebido.marca, carroRecebido.modelo, carroRecebido.ano, carroRecebido.cor);
 
             // Chama a função de cadastro passando o objeto como parâmetro
             const repostaClasse = await Carro.cadastroCarro(novoCarro);
 
             // verifica a resposta da função
-            if(repostaClasse) {
+            if (repostaClasse) {
                 // retornar uma mensagem de sucesso
                 return res.status(200).json({ mensagem: "Carro cadastrado com sucesso!" });
             } else {
-                // retorno uma mensagem de erro
-                return res.status(400).json({ mensagem: "Erro ao cadastra o carro. Entre em contato com o administrador do sistema."})
+                // retorna uma mensagem de erro
+                return res.status(400).json({ mensagem: "Erro ao cadastrar o carro. Entre em contato com o administrador do sistema." });
             }
-            
         } catch (error) {
             // lança uma mensagem de erro no console
             console.log(`Erro ao cadastrar um carro. ${error}`);
 
-            // retorna uma mensagem de erro para quem chamou a mensagem
+            // retorna uma mensagem de erro para quem chamou a função
             return res.status(400).json({ mensagem: "Não foi possível cadastrar o carro. Entre em contato com o administrador do sistema." });
         }
     }
 
+    /**
+    * Remove um carro do sistema com base em seu ID.
+    * 
+    * Este método recebe o ID do carro como parâmetro na URL da requisição e tenta removê-lo do banco de dados. 
+    * Caso a remoção seja bem-sucedida, retorna uma resposta HTTP 200 com uma mensagem de sucesso. 
+    * Caso contrário, retorna uma resposta HTTP 400 com uma mensagem de erro.
+    * 
+    * @param {Request} req - Objeto de requisição HTTP, contendo o ID do carro nos parâmetros da URL.
+    * @param {Response} res - Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
+    * @returns {Promise<Response>} - Retorna uma resposta HTTP com o status 200 em caso de sucesso, ou 400 em caso de erro.
+    * 
+    * @throws {Error} - Se ocorrer um erro durante o processo de remoção, uma mensagem é exibida no console e uma 
+    *                   resposta HTTP 400 com uma mensagem de erro é enviada ao cliente.
+    */
     static async remover(req: Request, res: Response): Promise<Response> {
         try {
             // recuperando o id do carro que será removido
@@ -99,15 +115,67 @@ export class CarroController extends Carro {
                 // retornar uma mensagem de sucesso
                 return res.status(200).json({ mensagem: "Carro removido com sucesso!" });
             } else {
-                // retorno uma mensagem de erro
-                return res.status(400).json({ mensagem: "Erro ao remover o carro. Entre em contato com o administrador do sistema." })
+                // retorna uma mensagem de erro
+                return res.status(400).json({ mensagem: "Erro ao remover o carro. Entre em contato com o administrador do sistema." });
             }
         } catch (error) {
             // lança uma mensagem de erro no console
             console.log(`Erro ao remover um carro. ${error}`);
 
-            // retorna uma mensagem de erro para quem chamou a mensagem
+            // retorna uma mensagem de erro para quem chamou a função
             return res.status(400).json({ mensagem: "Não foi possível remover o carro. Entre em contato com o administrador do sistema." });
+        }
+    }
+
+    /**
+    * Atualiza as informações de um carro no sistema.
+    * 
+    * Este método recebe o ID do carro como parâmetro na URL da requisição e os dados atualizados no corpo da requisição.
+    * Utiliza os dados fornecidos para criar uma instância de `Carro` e atualiza as informações no banco de dados. 
+    * Caso a atualização seja bem-sucedida, retorna uma resposta HTTP 200 com uma mensagem de sucesso. 
+    * Caso contrário, retorna uma resposta HTTP 400 com uma mensagem de erro.
+    * 
+    * @param {Request} req - Objeto de requisição HTTP, contendo o ID do carro nos parâmetros da URL e os dados no corpo da requisição.
+    * @param {Response} res - Objeto de resposta HTTP usado para retornar o status e a mensagem ao cliente.
+    * @returns {Promise<Response>} - Retorna uma resposta HTTP com o status 200 em caso de sucesso, ou 400 em caso de erro.
+    * 
+    * @throws {Error} - Se ocorrer um erro durante o processo de atualização, uma mensagem é exibida no console e uma 
+    *                   resposta HTTP 400 com uma mensagem de erro é enviada ao cliente.
+    */
+    static async atualizar(req: Request, res: Response): Promise<Response> {
+        try {
+            // recuperando o id do carro que será atualizado
+            const idCarroRecebido = parseInt(req.params.idCarro as string);
+
+            // recuperando as informações do carro que serão atualizadas
+            const carroRecebido: CarroDTO = req.body;
+
+            // instanciando um objeto do tipo carro com as informações recebidas
+            const carroAtualizado = new Carro(carroRecebido.marca,
+                carroRecebido.modelo,
+                carroRecebido.ano,
+                carroRecebido.cor);
+
+            // setando o id do carro que será atualizado
+            carroAtualizado.setIdCarro(idCarroRecebido);
+
+            // chamando a função de atualização de carro
+            const resposta = await Carro.atualizarCarro(carroAtualizado);
+
+            // verificando a resposta da função
+            if (resposta) {
+                // retornar uma mensagem de sucesso
+                return res.status(200).json({ mensagem: "Carro atualizado com sucesso!" });
+            } else {
+                // retorno uma mensagem de erro
+                return res.status(400).json({ mensagem: "Erro ao atualizar o carro. Entre em contato com o administrador do sistema." })
+            }
+        } catch (error) {
+            // lança uma mensagem de erro no console
+            console.log(`Erro ao atualizar um carro. ${error}`);
+
+            // retorna uma mensagem de erro há quem chamou a mensagem
+            return res.status(400).json({ mensagem: "Não foi possível atualizar o carro. Entre em contato com o administrador do sistema." });
         }
     }
 }
